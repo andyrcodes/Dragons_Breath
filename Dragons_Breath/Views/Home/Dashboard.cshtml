@@ -1,0 +1,757 @@
+﻿@using Dragons_Breath.Services;
+@using Microsoft.AspNetCore.Identity;
+@inject IBTAccessService accessService
+@inject IBTProjectService projectService
+@inject UserManager<BTUser> userManager
+@inject IBTTicketService ticketService
+@inject IBTAttachmentService attachmentService
+@inject IBTNotificationService notificationService
+
+@model Dragons_Breath.Models.ViewModels.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+@if (User.IsInRole("NewUser"))
+{
+    <h1>Thank you for registering with the Dragon's Breath Tracker</h1>
+    <p>Until you are assigned a role you will be severely limited</p>
+}
+else
+{
+    <div class="row" id="smallBox">
+        <div class="col-lg-3 col-6">
+            <!-- small box -->
+            <div class="small-box bg-gradient-danger">
+                <div class="inner">
+                    <h3>@(await notificationService.CriticalTicketCount(User))</h3>
+
+                    <p>Critical Tickets</p>
+                </div>
+                <div class="icon">
+                    <i class="fa fa-dragon"></i>
+                </div>
+            </div>
+        </div>
+        <!-- ./col -->
+        <div class="col-lg-3 col-6">
+            <!-- small box -->
+            <div class="small-box bg-gradient-orange">
+                <div class="inner">
+                    <h3>@(await notificationService.UnassignedTicketCount(User))</h3>
+
+                    <p>Unassigned Tickets</p>
+                </div>
+                <div class="icon">
+                    <i class="fa fa-chess-rook"></i>
+                </div>
+            </div>
+        </div>
+        <!-- ./col -->
+        <div class="col-lg-3 col-6">
+            <!-- small box -->
+            <div class="small-box bg-gradient-yellow">
+                <div class="inner">
+                    <h3>@(await notificationService.NewTicketCount(User))</h3>
+
+                    <p>New Tickets Last 7 days</p>
+                </div>
+                <div class="icon">
+                    <i class="fa fa-chess-knight"></i>
+                </div>
+            </div>
+        </div>
+        <!-- ./col -->
+        <div class="col-lg-3 col-6">
+            <!-- small box -->
+            <div class="small-box bg-gradient-green">
+                <div class="inner">
+                    <h3>@(await notificationService.ResolvedTicketCount(User))</h3>
+
+                    <p>Tickets Resolved Last 7 Days</p>
+                </div>
+                <div class="icon">
+                    <i class="fa fa-user-shield"></i>
+                </div>
+            </div>
+        </div>
+        <!-- ./col -->
+    </div>
+    @if (Model.UnassignedTickets.Count() > 0 || Model.CriticalTickets.Count() > 0 || Model.MoreInfoTickets.Count() > 0)
+    {
+        var list = new List<Ticket>();
+        var title = "";
+        if (Model.UnassignedTickets.Count() > 0) { list.AddRange(Model.UnassignedTickets); title = "Unassigned Tickets"; };
+        if (Model.CriticalTickets.Count() > 0) { list.AddRange(Model.CriticalTickets); title = "Critical Tickets"; };
+        if (Model.MoreInfoTickets.Count() > 0) { list.AddRange(Model.MoreInfoTickets); title = "More Info Tickets"; };
+
+        <div class="row" id="filteredTickets">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header bg-danger">
+                        <h5 class="card-title">@title</h5>
+
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <button type="button" class="btn btn-tool" data-card-widget="remove">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body">
+                        <div class="row" id="myTkts">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            Created By
+                                        </th>
+                                        <th>
+                                            Developer
+                                        </th>
+                                        <th>
+                                            Title
+                                        </th>
+                                        <th>
+                                            Created
+                                        </th>
+                                        <th>
+                                            Updated
+                                        </th>
+                                        <th>
+                                            Project
+                                        </th>
+                                        <th>
+                                            Type
+                                        </th>
+                                        <th>
+                                            Priority
+                                        </th>
+                                        <th>
+                                            Status
+                                        </th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in list)
+                                    {
+                                        <tr>
+                                            <td>
+                                                @Html.DisplayFor(modelItem => item.OwnerUser.FullName)
+                                            </td>
+                                            <td>
+                                                @if (item.DeveloperUser != null)
+                                                {
+                                                    @Html.DisplayFor(modelItem => item.DeveloperUser.FullName)
+                                                }
+                                                else
+                                                {
+                                                    <span>No Developer Assigned</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @Html.DisplayFor(modelItem => item.Title)
+                                            </td>
+                                            <td>
+                                                @item.Created.ToString("MMM/dd/yyyy HH:mm:ss")
+                                            </td>
+                                            <td>
+                                                @if (item.Updated != null)
+                                                {
+                                                    @item.Updated.Value.ToString("MMM/dd/yyyy HH:mm:ss")
+                                                }
+                                            </td>
+                                            <td>
+                                                @Html.DisplayFor(modelItem => item.Project.Name)
+                                            </td>
+                                            <td>
+                                                @Html.DisplayFor(modelItem => item.TicketType.Name)
+                                            </td>
+                                            <td>
+                                                @Html.DisplayFor(modelItem => item.TicketPriority.Name)
+                                            </td>
+                                            <td>
+                                                @Html.DisplayFor(modelItem => item.TicketStatus.Name)
+                                            </td>
+                                            <td>
+                                                <a asp-controller="Tickets" asp-action="Details" asp-route-id="@item.Id" class="btn btn-danger">Details <i class="fa fa-arrow-circle-right"></i></a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- /.row -->
+                    </div>
+                    <!-- ./card-body -->
+                </div>
+            </div>
+        </div>
+
+        <div class="row" id="charts">
+            <div class="col">
+                <div class="card collapsed-card">
+                    <div class="card-header bg-gradient-lightblue">
+                        <h5 class="card-title">At A Glance</h5>
+
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-4">
+                                <p class="text-center">
+                                    <strong>Tickets By Type</strong>
+                                </p>
+
+                                <div class="chart">
+                                    <canvas id="typeChart" height="250" style="height: 250px;"></canvas>
+                                </div>
+                                <!-- /.chart-responsive -->
+                            </div>
+                            <!-- /.col -->
+                            <div class="col-4">
+                                <p class="text-center">
+                                    <strong>Tickets By Priority</strong>
+                                </p>
+
+                                <div class="chart">
+                                    <canvas id="priorityChart" height="250" style="height: 250px;"></canvas>
+                                </div>
+                                <!-- /.chart-responsive -->
+                            </div>
+                            <!-- /.col -->
+                            <div class="col-4">
+                                <p class="text-center">
+                                    <strong>Tickets By Status</strong>
+                                </p>
+
+                                <div class="chart">
+                                    <canvas id="statusChart" height="250" style="height: 250px;"></canvas>
+                                </div>
+                                <!-- /.chart-responsive -->
+                            </div>
+                            <!-- /.col -->
+                        </div>
+                        <!-- /.row -->
+                    </div>
+                    <!-- ./card-body -->
+                </div>
+            </div>
+        </div>
+
+    }
+    else
+    {
+        <div class="row" id="charts">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header bg-gradient-lightblue">
+                        <h5 class="card-title">At A Glance</h5>
+
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-4">
+                                <p class="text-center">
+                                    <strong>Tickets By Type</strong>
+                                </p>
+
+                                <div class="chart">
+                                    <canvas id="typeChart" height="250" style="height: 250px;"></canvas>
+                                </div>
+                                <!-- /.chart-responsive -->
+                            </div>
+                            <!-- /.col -->
+                            <div class="col-4">
+                                <p class="text-center">
+                                    <strong>Tickets By Priority</strong>
+                                </p>
+
+                                <div class="chart">
+                                    <canvas id="priorityChart" height="250" style="height: 250px;"></canvas>
+                                </div>
+                                <!-- /.chart-responsive -->
+                            </div>
+                            <!-- /.col -->
+                            <div class="col-4">
+                                <p class="text-center">
+                                    <strong>Tickets By Status</strong>
+                                </p>
+
+                                <div class="chart">
+                                    <canvas id="statusChart" height="250" style="height: 250px;"></canvas>
+                                </div>
+                                <!-- /.chart-responsive -->
+                            </div>
+                            <!-- /.col -->
+                        </div>
+                        <!-- /.row -->
+                    </div>
+                    <!-- ./card-body -->
+                </div>
+            </div>
+        </div>
+
+    }
+
+
+    <div class="row" id="myTickets">
+        <div class="col">
+            <div class="card">
+                <div class="card-header bg-gradient-danger">
+                    <h5 class="card-title">My Tickets</h5>
+
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                    </div>
+                </div>
+                <!-- /.card-header -->
+                <div class="card-body">
+                    <div class="row" id="myTkts">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        Created By
+                                    </th>
+                                    <th>
+                                        Developer
+                                    </th>
+                                    <th>
+                                        Title
+                                    </th>
+                                    <th>
+                                        Created
+                                    </th>
+                                    <th>
+                                        Updated
+                                    </th>
+                                    <th>
+                                        Project
+                                    </th>
+                                    <th>
+                                        Type
+                                    </th>
+                                    <th>
+                                        Priority
+                                    </th>
+                                    <th>
+                                        Status
+                                    </th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in await ticketService.ListUserTickets())
+                                {
+                                    <tr>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.OwnerUser.FullName)
+                                        </td>
+                                        <td>
+                                            @if (item.DeveloperUser != null)
+                                            {
+                                                @Html.DisplayFor(modelItem => item.DeveloperUser.FullName)
+                                            }
+                                            else
+                                            {
+                                                <span>No Developer Assigned</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.Title)
+                                        </td>
+                                        <td>
+                                            @item.Created.ToString("MMM/dd/yyyy HH:mm:ss")
+                                        </td>
+                                        <td>
+                                            @if (item.Updated != null)
+                                            {
+                                                @item.Updated.Value.ToString("MMM/dd/yyyy HH:mm:ss")
+                                            }
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.Project.Name)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.TicketType.Name)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.TicketPriority.Name)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.TicketStatus.Name)
+                                        </td>
+                                        <td>
+                                            <a asp-controller="Tickets" asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-primary">Details <i class="fa fa-chevron-circle-right"></i></a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- /.row -->
+                </div>
+                <!-- ./card-body -->
+            </div>
+        </div>
+    </div>
+    <div class="row" id="myProjects">
+        <div class="col">
+            <div class="card collapsed-card">
+                <div class="card-header bg-gradient-yellow">
+                    <h5 class="card-title">My Projects</h5>
+
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <!-- /.card-header -->
+                <div class="card-body">
+                    @if ((await projectService.ListUserProjects(userManager.GetUserId(User))).Count() > 8)
+                    {
+                        <div class="row" id="myProj">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            Name
+                                        </th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in await projectService.ListUserProjects(userManager.GetUserId(User)))
+                                    {
+                                        <tr>
+                                            <td>
+                                                @Html.DisplayFor(modelItem => item.Name)
+                                            </td>
+                                            <td>
+                                                <a asp-controller="Projects" asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-primary">Details <i class="fa fa-chevron-circle-right"></i></a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row clearfix">
+                            @foreach (var item in await projectService.ListUserProjects(userManager.GetUserId(User)))
+                            {
+                                <div class="col-sm-6 col-md-3">
+                                    <a asp-controller="Projects" asp-action="Details" asp-route-id="@item.Id">
+                                        <div class="card">
+                                            <div class="text-center">
+                                                @if (string.IsNullOrEmpty(item.ImagePath))
+                                                {
+                                                    <img style="padding-top:.5rem" src="~/img/projectDefault.png" />
+                                                }
+                                                else
+                                                {
+                                                    <img src="@attachmentService.DecodeAttachment(item.ImageData, item.ImagePath)" style="padding-top:.5rem" />
+                                                }
+                                            </div>
+                                            <div class="file-name">
+                                                <h5 class="text-center">@item.Name</h5>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    }
+                    <!-- /.row -->
+                </div>
+                <!-- ./card-body -->
+            </div>
+        </div>
+    </div>
+    <div class="row" id="allTickets">
+        <div class="col">
+            <div class="card collapsed-card">
+                <div class="card-header bg-gradient-orange">
+                    <h5 class="card-title">All Tickets</h5>
+
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <!-- /.card-header -->
+                <div class="card-body">
+                    <div class="row" id="allTkts">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        Created By
+                                    </th>
+                                    <th>
+                                        Developer
+                                    </th>
+                                    <th>
+                                        Title
+                                    </th>
+                                    <th>
+                                        Created
+                                    </th>
+                                    <th>
+                                        Updated
+                                    </th>
+                                    <th>
+                                        Project
+                                    </th>
+                                    <th>
+                                        Type
+                                    </th>
+                                    <th>
+                                        Priority
+                                    </th>
+                                    <th>
+                                        Status
+                                    </th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Tickets)
+                                {
+                                    <tr>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.OwnerUser.FullName)
+                                        </td>
+                                        <td>
+                                            @if (item.DeveloperUser != null)
+                                            {
+                                                @Html.DisplayFor(modelItem => item.DeveloperUser.FullName)
+                                            }
+                                            else
+                                            {
+                                                <span>No Developer Assigned</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.Title)
+                                        </td>
+                                        <td>
+                                            @item.Created.ToString("MMM/dd/yyyy HH:mm:ss")
+                                        </td>
+                                        <td>
+                                            @if (item.Updated != null)
+                                            {
+                                                @item.Updated.Value.ToString("MMM/dd/yyyy HH:mm:ss")
+                                            }
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.Project.Name)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.TicketType.Name)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.TicketPriority.Name)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.TicketStatus.Name)
+                                        </td>
+                                        <td>
+                                            <a asp-controller="Tickets" asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-primary">Details <i class="fa fa-chevron-circle-right"></i></a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- /.row -->
+                </div>
+                <!-- ./card-body -->
+            </div>
+        </div>
+    </div>
+    <div class="row" id="allProjects">
+        <div class="col">
+            <div class="card collapsed-card">
+                <div class="card-header bg-gradient-green">
+                    <h5 class="card-title">All Projects</h5>
+
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <!-- /.card-header -->
+                <div class="card-body">
+                    @if (Model.Projects.Count() > 8)
+                    {
+                        <div class="row" id="allProj">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            Name
+                                        </th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.Projects)
+                                    {
+                                        <tr>
+                                            <td>
+                                                @Html.DisplayFor(modelItem => item.Name)
+                                            </td>
+                                            <td>
+                                                <a asp-controller="Projects" asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-primary">Details <i class="fa fa-chevron-circle-right"></i></a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row clearfix">
+                            @foreach (var item in Model.Projects)
+                            {
+                                <div class="col-sm-6 col-md-3">
+                                    <a asp-controller="Projects" asp-action="Details" asp-route-id="@item.Id">
+                                        <div class="card">
+                                            <div class="text-center">
+                                                @if (string.IsNullOrEmpty(item.ImagePath))
+                                                {
+                                                    <img style="padding-top:.5rem" src="~/img/projectDefault.png" />
+                                                }
+                                                else
+                                                {
+                                                    <img src="@attachmentService.DecodeAttachment(item.ImageData, item.ImagePath)" style="padding-top:.5rem" />
+                                                }
+                                            </div>
+                                            <div class="file-name">
+                                                <h5 class="text-center">@item.Name</h5>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    }
+
+
+                    <!-- /.row -->
+                </div>
+                <!-- ./card-body -->
+            </div>
+        </div>
+    </div>
+    @section Scripts{
+
+        <script src="~/js/dashboardScripts.js"></script>
+        <script>
+        //Step 1 - Construct the URL needed to request the data
+        var Url1 = '@Url.Action("TypeChart", "Charts")'; // represent the endpoint
+        var Url2 = '@Url.Action("PriorityChart", "Charts")'; // represent the endpoint
+        var Url3 = '@Url.Action("StatusChart", "Charts")'; // represent the endpoint
+
+        //Step 2 - start the structure for our AJAX call
+        $.post(Url1).then(function (response) {
+            // Get context with jQuery - using jQuery's .get() method.
+            var typeChartCanvas = $('#typeChart').get(0).getContext('2d')
+            var donutData = {
+                labels: response.labels,
+                datasets: [
+                    {
+                        data: response.data,
+                        backgroundColor: response.backgroundColor,
+                    }
+                ]
+            }
+            var donutOptions = {
+                maintainAspectRatio: false,
+                responsive: true,
+            }
+            //Create pie or douhnut chart
+            // You can switch between pie and douhnut using the method below.
+            var donutChart = new Chart(typeChartCanvas, {
+                type: 'polarArea',
+                data: donutData,
+                options: donutOptions
+            })
+        });
+        $.post(Url2).then(function (response) {
+            // Get context with jQuery - using jQuery's .get() method.
+            var priorityChartCanvas = $('#priorityChart').get(0).getContext('2d')
+            var donutData = {
+                labels: response.labels,
+                datasets: [
+                    {
+                        data: response.data,
+                        backgroundColor: response.backgroundColor,
+                    }
+                ]
+            }
+            var donutOptions = {
+                maintainAspectRatio: false,
+                responsive: true,
+            }
+            //Create pie or douhnut chart
+            // You can switch between pie and douhnut using the method below.
+            var donutChart = new Chart(priorityChartCanvas, {
+                type: 'doughnut',
+                data: donutData,
+                options: donutOptions
+            })
+        });
+        $.post(Url3).then(function (response) {
+            // Get context with jQuery - using jQuery's .get() method.
+            var statusChartCanvas = $('#statusChart').get(0).getContext('2d')
+            var donutData = {
+                labels: response.labels,
+                datasets: [
+                    {
+                        data: response.data,
+                        backgroundColor: response.backgroundColor,
+                    }
+                ]
+            }
+            var donutOptions = {
+                maintainAspectRatio: false,
+                responsive: true,
+            }
+            //Create pie or douhnut chart
+            // You can switch between pie and douhnut using the method below.
+            var donutChart = new Chart(statusChartCanvas, {
+                type: 'pie',
+                data: donutData,
+                options: donutOptions
+            })
+        });
+        </script>
+    }
+
+}

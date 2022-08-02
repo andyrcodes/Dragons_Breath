@@ -1,0 +1,12 @@
+﻿.wordWrap {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+
+.topSpace {
+    padding-top: 1rem;
+}
+
+.bottomSpace {
+    padding-bottom: 1rem;
+}

@@ -1,0 +1,229 @@
+﻿@page
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Log in";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Dragon's Breath | @ViewBag.Title</title>
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Font Awesome -->
+    <link href="~/css/all.min.css" rel="stylesheet" />
+    <!-- Ionicons -->
+    <link rel="stylesheet" href="//code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <!-- iCheck -->
+    <link href="~/css/icheck-bootstrap.min.css" rel="stylesheet" />
+    <!-- Theme style -->
+    <link href="~/css/adminlte.min.css" rel="stylesheet" />
+    <!-- overlayScrollbars -->
+    <link href="~/css/OverlayScrollbars.min.css" rel="stylesheet" />
+    <!-- summernote -->
+    <link href="~/css/summernote-bs4.css" rel="stylesheet" />
+    <!-- Google Font: Source Sans Pro -->
+    <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+    <link href="~/css/sweetalert2.min.css" rel="stylesheet" />
+    <link href="~/css/bootstrap-4.min.css" rel="stylesheet" />
+    <link href="~/css/select2.min.css" rel="stylesheet" />
+    <link href="~/css/select2-bootstrap4.min.css" rel="stylesheet" />
+    <link href="~/css/bootstrap-duallistbox.min.css" rel="stylesheet" />
+    <link href="~/css/toastr.min.css" rel="stylesheet" />
+    <link href="~/css/site.css" rel="stylesheet" />
+    <style>
+        body {
+            background-image: url("../../img/dragonsbreathlogo.jpg");
+            background-size: cover;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <br />
+        <div class="row">
+            <div class="col-4 offset-4">
+                <div class="login-box">
+                    <div class="login-logo">
+                        <a href="https://www.coderfoundry.com/"><b>Dragon's</b>Breath</a>
+                    </div>
+                    <!-- /.login-logo -->
+                    <div class="card">
+                        <div class="card-body login-card-body">
+                            <p class="login-box-msg">Sign in to start your session</p>
+
+                            <form id="account" method="post">
+                                <div class="input-group mb-3">
+                                    <input type="email" name="Email" class="form-control" placeholder="Email">
+                                    <div class="input-group-append">
+                                        <div class="input-group-text">
+                                            <span class="fas fa-envelope"></span>
+                                        </div>
+                                    </div>
+                                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                                </div>
+                                <div class="input-group mb-3">
+                                    <input type="password" name="Password" class="form-control" placeholder="Password">
+                                    <div class="input-group-append">
+                                        <div class="input-group-text">
+                                            <span class="fas fa-lock"></span>
+                                        </div>
+                                    </div>
+                                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                                </div>
+                                <div class="row">
+                                    <div class="col-8">
+                                        <div class="icheck-primary">
+                                            <input name="RememberMe" type="checkbox" id="remember">
+                                            <label for="remember">
+                                                Remember Me
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <!-- /.col -->
+                                    <div class="col-4">
+                                        <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+                                    </div>
+                                    <!-- /.col -->
+                                </div>
+                            </form>
+                            <p class="mb-1">
+                                <a id="forgot-password" href="#">Forgot your password?</a>
+                            </p>
+                            <p class="mb-0">
+                                <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Register as a new user</a>
+                            </p>
+                        </div>
+                        <!-- /.login-card-body -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="card">
+            <div class="card-header bg-gray">
+                <h5 class="card-title">Demo User Accounts</h5>
+            </div>
+            <!-- /.card-header -->
+            <div class="card-body bg-gradient-gray">
+                <div class="row">
+                    <div class="col">
+                        <div class="small-box bg-gradient-danger">
+                            <div class="inner">
+                                <h3>Admin</h3>
+                                <ul>
+                                    <li>Full Access</li>
+                                    <li>Adjust Settings</li>
+                                    <li>Manage All Users</li>
+                                </ul>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-dragon"></i>
+                            </div>
+                            <a href="javascript:void()" class="small-box-footer" id="demoAdminBtn">Log In <i class="fas fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="small-box bg-gradient-orange">
+                            <div class="inner">
+                                <h3>Manager</h3>
+                                <ul>
+                                    <li>Create/Manage Projects</li>
+                                    <li>Ticket Assignment</li>
+                                    <li>Manage Some Users</li>
+                                </ul>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-chess-rook"></i>
+                            </div>
+                            <a href="javascript:void()" class="small-box-footer" id="demoPMBtn">Log In <i class="fas fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="small-box bg-gradient-yellow">
+                            <div class="inner">
+                                <h3>Developer</h3>
+                                <ul>
+                                    <li>Receives assigned Tickets</li>
+                                    <li>Can update assigned Tickets</li>
+                                </ul>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-chess-knight"></i>
+                            </div>
+                            <a href="javascript:void()" class="small-box-footer" id="demoDevBtn">Log In <i class="fas fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="small-box bg-gradient-green">
+                            <div class="inner">
+                                <h3>Submitter</h3>
+                                <ul>
+                                    <li>Limited Access</li>
+                                    <li>Creates Tickets</li>
+                                </ul>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-user-shield"></i>
+                            </div>
+                            <a href="javascript:void()" class="small-box-footer" id="demoSubBtn">Log In <i class="fas fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.row -->
+            </div>
+            <!-- ./card-body -->
+            <!--<div class="card-footer bg-gray">
+                <div class="row text-center">
+                    <div class="col">
+                        Please note that demo users have very limited access to the database. You will only be able to interact with Comments and Attachments. For a full experience please contact the developer
+                    </div>
+                </div>-->
+                <!-- /.row -->
+            <!--</div>-->
+            <!-- /.card-footer -->
+        </div>
+    </div>
+
+    <form id="demoAdmin" method="post"><input type="hidden" name="demoEmail" value="DemoAdminEmail" /></form>
+    <form id="demoPM" method="post"><input type="hidden" name="demoEmail" value="DemoPMEmail" /></form>
+    <form id="demoDev" method="post"><input type="hidden" name="demoEmail" value="DemoDevEmail" /></form>
+    <form id="demoSub" method="post"><input type="hidden" name="demoEmail" value="DemoSubEmail" /></form>
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <!-- jQuery -->
+    <script src="~/js/jquery.min.js"></script>
+    <!-- jQuery UI 1.11.4 -->
+    <script src="~/js/jquery-ui.min.js"></script>
+    <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
+    <script>
+        $.widget.bridge('uibutton', $.ui.button)
+    </script>
+    <!-- Bootstrap 4 -->
+    <script src="~/js/bootstrap.bundle.min.js"></script>
+    <!-- ChartJS -->
+    <script src="~/js/Chart.min.js"></script>
+    <!-- Summernote -->
+    <script src="~/js/summernote-bs4.min.js"></script>
+    <!-- overlayScrollbars -->
+    <script src="~/js/jquery.overlayScrollbars.min.js"></script>
+    <!-- AdminLTE App -->
+    <script src="~/js/adminlte.min.js"></script>
+    <script src="~/js/sweetalert2.all.min.js"></script>
+    <script src="~/js/jquery.dataTables.min.js"></script>
+    <script src="~/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/js/dataTables.responsive.min.js"></script>
+    <script src="~/js/responsive.bootstrap4.min.js"></script>
+    <script src="~/js/select2.full.min.js"></script>
+    <script src="~/js/jquery.bootstrap-duallistbox.min.js"></script>
+    <script src="~/js/toastr.min.js"></script>
+    <script src="~/js/notificationscripts.js"></script>
+    <script src="~/js/loginScripts.js"></script>
+    <partial name="_ValidationScriptsPartial" />
+
+</body>
+</html>

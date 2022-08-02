@@ -1,0 +1,598 @@
+﻿@using Dragons_Breath.Services
+@model Dragons_Breath.Models.Ticket
+@inject IBTAttachmentService attachmentService
+@inject IBTAccessService accessService
+
+@{
+    ViewData["Title"] = "Ticket Details";
+}
+@if (await accessService.CanInteractTicket(Model.Id))
+{
+    <div class="card">
+        <div class="card-header bg-gradient-danger">
+            <h5 class="card-title">
+                @Html.DisplayFor(model => model.Title) on @Html.DisplayFor(model => model.Project.Name)
+            </h5>
+            <div class="card-tools">
+                @if (Model.Updated != null)
+                {
+                    <span class="align-right">Last Updated on @Model.Updated.Value.ToString("HH:mm MM/dd/yy")</span>
+                }
+                else
+                {
+                    <span class="align-right">Created on @Model.Created.ToString("HH:mm MM/dd/yy")</span>
+                }
+                <button type="button" id="titleProjectEdit" class="btn btn-tool">
+                    Edit Title & Project <i class="fas fa-pen"></i>
+                </button>
+                <button type="button" id="editAll" class="btn btn-tool">
+                    Edit All <i class="fas fa-pen-fancy"></i>
+                </button>
+                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                    <i class="fas fa-minus"></i>
+                </button>
+            </div>
+        </div>
+        <!-- /.card-header -->
+        <div class="card-body">
+            <form asp-action="Edit">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" asp-for="@Model.Id" />
+                <input type="hidden" asp-for="@Model.Created" />
+                <input type="hidden" asp-for="@Model.OwnerUserId" />
+                <div class="card-body">
+                    <div class="row" id="ticketEdit">
+                        <div class="col">
+                            <div class="row">
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label style="display:none" id="titleLabel" class="control-label">Title</label>
+                                        <input asp-for="Title" id="titleInput" style="display:none" class="form-control" />
+                                        <span asp-validation-for="Title" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label asp-for="ProjectId" id="projectLabel" style="display:none" class="control-label"></label>
+                                        <select asp-for="ProjectId" id="projectInput" style="display:none" class="form-control" asp-items="ViewBag.ProjectId"></select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row topSpace">
+                                <div class="col">
+                                    <div class="small-box bg-gradient-red">
+                                        <div class="inner">
+                                            <div class="form-group">
+                                                <label class="control-label">Priority</label>
+                                                <p>@Model.TicketPriority.Name</p>
+                                            </div>
+                                        </div>
+                                        <div class="icon">
+                                            <i class="fa fa-bell"></i>
+                                        </div>
+                                        <a href="javascript:void()" id="priorityEdit" class="small-box-footer">Edit <i class="fas fa-pen"></i></a>
+                                    </div>
+                                    <select asp-for="TicketPriorityId" style="display:none" id="ticketPriority" class="form-control" asp-items="ViewBag.TicketPriorityId"></select>
+                                </div>
+                                <div class="col">
+                                    <div class="small-box bg-gradient-orange">
+                                        <div class="inner">
+                                            <div class="form-group">
+                                                <label class="control-label">Type</label>
+                                                <p>@Html.DisplayFor(model => model.TicketType.Name)</p>
+                                            </div>
+                                        </div>
+                                        <div class="icon">
+                                            <i class="fa fa-boxes"></i>
+                                        </div>
+                                        <a href="javascript:void()" id="typeEdit" class="small-box-footer">Edit <i class="fas fa-pen"></i></a>
+                                    </div>
+                                    <select asp-for="TicketTypeId" style="display:none" id="ticketType" class="form-control" asp-items="ViewBag.TicketTypeId"></select>
+                                </div>
+                                <div class="col">
+                                    <div class="small-box bg-gradient-warning">
+                                        <div class="inner">
+                                            <div class="form-group">
+                                                <label class="control-label">Status</label>
+                                                <p>@Html.DisplayFor(model => model.TicketStatus.Name)</p>
+                                            </div>
+                                        </div>
+                                        <div class="icon">
+                                            <i class="fa fa-tasks"></i>
+                                        </div>
+                                        <a href="javascript:void()" id="statusEdit" class="small-box-footer">Edit <i class="fas fa-pen"></i></a>
+                                    </div>
+                                    <select asp-for="TicketStatusId" id="ticketStatus" style="display:none" class="form-control" asp-items="ViewBag.TicketStatusId"></select>
+                                </div>
+                                <div class="col">
+                                    <div class="small-box bg-gradient-green">
+                                        <div class="inner">
+                                            <div class="form-group">
+                                                <label class="control-label">Assigned To</label>
+                                                @if (Model.DeveloperUser != null)
+                                                {
+                                                    <p>@Html.DisplayFor(model => model.DeveloperUser.FullName)</p>
+                                                }
+                                                else
+                                                {
+                                                    <p>No Developer Assigned</p>
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="icon">
+                                            <i class="fa fa-user-cog"></i>
+                                        </div>
+                                        @if (User.IsInRole("Admin") || User.IsInRole("ProjectManager"))
+                                        {
+                                            <a href="javascript:void()" id="developerEdit" class="small-box-footer">Edit <i class="fas fa-pen"></i></a>
+                                        }
+                                        else
+                                        {
+                                            <a href="javascript:void()" class="small-box-footer"><i class="fas fa-minus-circle"></i></a>
+                                        }
+                                    </div>
+                                    @if (User.IsInRole("Admin") || User.IsInRole("ProjectManager"))
+                                    {
+                                        <select asp-for="DeveloperUserId" style="display:none" id="developer" class="form-control" asp-items="ViewBag.DeveloperUserId"></select>
+                                    }
+
+                                </div>
+                                <div class="col">
+                                    <div class="small-box bg-gradient-dark">
+                                        <div class="inner">
+                                            <div class="form-group">
+                                                <label asp-for="OwnerUserId" class="control-label"></label>
+                                                <p>@Html.DisplayFor(model => model.OwnerUser.FullName)</p>
+                                            </div>
+                                        </div>
+                                        <div class="icon">
+                                            <i class="fa fa-user-lock"></i>
+                                        </div>
+                                        <a href="javascript:void()" class="small-box-footer"><i class="fas fa-minus-circle"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row topSpace">
+                                <div class="small-box bg-gradient-gray" style="width:100%">
+                                    <div class="inner">
+                                        <div class="form-group">
+                                            <label asp-for="Description" class="control-label"></label>
+                                            <p>@Html.Raw(Model.Description)</p>
+                                        </div>
+                                    </div>
+                                    <div class="icon">
+                                        <i class="fa fa-book"></i>
+                                    </div>
+                                    <a href="javascript:void()" id="descriptionEdit" class="small-box-footer">Edit <i class="fas fa-pen"></i></a>
+                                </div>
+                                <div class="justify-content-center"><textarea name="Description" id="ticketDescription" style="display:none" class="">@Model.Description</textarea></div>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.row -->
+                </div>
+                <!-- ./card-body -->
+                <div style="display:none" id="footer" class="card-footer text-center">
+                    <div class="row">
+                        <div class="col-3">
+                            <a asp-controller="Tickets" asp-action="Details" asp-route-id="@Model.Id" class="btn btn-block btn-danger">Cancel</a>
+                        </div>
+                        <div class="col-6"></div>
+                        <div class="col-3">
+                            <input type="submit" value="Save Changes" class="btn btn-block btn-success" />
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- /.row -->
+        </div>
+        <!-- ./card-body -->
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-header bg-gradient-danger">
+            <h5 class="card-title">
+                @Html.DisplayFor(model => model.Title) on @Html.DisplayFor(model => model.Project.Name)
+            </h5>
+            <div class="card-tools">
+                @if (Model.Updated != null)
+                {
+                    <span class="align-right">Last Updated on @Model.Updated.Value.ToString("HH:mm MM/dd/yy")</span>
+                }
+                else
+                {
+                    <span class="align-right">Created on @Model.Created.ToString("HH:mm MM/dd/yy")</span>
+                }
+                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                    <i class="fas fa-minus"></i>
+                </button>
+            </div>
+        </div>
+        <!-- /.card-header -->
+        <div class="card-body">
+            <div class="card-body">
+                <div class="row" id="ticketEdit">
+                    <div class="col">
+                        <div class="row topSpace">
+                            <div class="col">
+                                <div class="small-box bg-gradient-red">
+                                    <div class="inner">
+                                        <div class="form-group">
+                                            <label class="control-label">Priority</label>
+                                            <p>@Model.TicketPriority.Name</p>
+                                        </div>
+                                    </div>
+                                    <div class="icon">
+                                        <i class="fa fa-bell"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="small-box bg-gradient-orange">
+                                    <div class="inner">
+                                        <div class="form-group">
+                                            <label class="control-label">Type</label>
+                                            <p>@Html.DisplayFor(model => model.TicketType.Name)</p>
+                                        </div>
+                                    </div>
+                                    <div class="icon">
+                                        <i class="fa fa-boxes"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="small-box bg-gradient-warning">
+                                    <div class="inner">
+                                        <div class="form-group">
+                                            <label class="control-label">Status</label>
+                                            <p>@Html.DisplayFor(model => model.TicketStatus.Name)</p>
+                                        </div>
+                                    </div>
+                                    <div class="icon">
+                                        <i class="fa fa-tasks"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="small-box bg-gradient-green">
+                                    <div class="inner">
+                                        <div class="form-group">
+                                            <label class="control-label">Assigned To</label>
+                                            @if (Model.DeveloperUser != null)
+                                            {
+                                                <p>@Html.DisplayFor(model => model.DeveloperUser.FullName)</p>
+                                            }
+                                            else
+                                            {
+                                                <p>No Developer Assigned</p>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="icon">
+                                        <i class="fa fa-user-cog"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="small-box bg-gradient-dark">
+                                    <div class="inner">
+                                        <div class="form-group">
+                                            <label asp-for="OwnerUserId" class="control-label"></label>
+                                            <p>@Html.DisplayFor(model => model.OwnerUser.FullName)</p>
+                                        </div>
+                                    </div>
+                                    <div class="icon">
+                                        <i class="fa fa-user-lock"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row topSpace">
+                            <div class="small-box bg-gradient-gray" style="width:100%">
+                                <div class="inner">
+                                    <div class="form-group">
+                                        <label asp-for="Description" class="control-label"></label>
+                                        <p>@Html.Raw(Model.Description)</p>
+                                    </div>
+                                </div>
+                                <div class="icon">
+                                    <i class="fa fa-book"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.row -->
+            </div>
+            <!-- ./card-body -->
+            <!-- /.row -->
+        </div>
+        <!-- ./card-body -->
+    </div>
+}
+
+<div class="row">
+    <div class="col-5" id="addCol">
+        <div class="row">
+            <div class="col" id="addAttachCard">
+                <div class="card">
+                    <div class="card-header bg-gradient-orange" data-card-widget="collapse">
+                        <h5 class="card-title">Add Attachment</h5>
+
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body bg-gradient-dark">
+                        <form asp-action="CreateAttachment" asp-controller="Tickets" enctype="multipart/form-data" method="post">
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                            <input type="hidden" asp-for="@Model.Id" name="TicketId">
+                            <div class="col">
+                                <label>Description</label>
+                            </div>
+                            <div class="row">
+                                <textarea name="Description" type="text" class="form-control"></textarea>
+                            </div>
+                            <div class="row topSpace">
+                                <input name="FormFile" type="file" />
+                            </div>
+                            <div class="row topSpace">
+                                <button type="submit" class="btn bg-orange">Submit <i class="fa fa-chevron-circle-right"></i></button>
+                            </div>
+                            <!-- /.row -->
+                        </form>
+                    </div>
+                    <!-- ./card-body -->
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col" id="addCommentCard">
+                <div class="card">
+                    <div class="card-header bg-gradient-green" data-card-widget="collapse">
+                        <h5 class="card-title">Add Comment</h5>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body bg-gradient-dark">
+                        <form asp-action="CreateComment" asp-controller="Tickets" method="post">
+                            <input type="hidden" asp-for="@Model.Id" name="TicketId">
+                            <div class="col">
+                                <label>Comment</label>
+                            </div>
+
+                            <div class="row">
+                                <textarea name="Comment" type="text" class="form-control summernote"></textarea>
+                            </div>
+                            <!-- /.row -->
+                            <div class="row topSpace">
+                                <button type="submit" class="btn bg-success">Submit <i class="fa fa-chevron-circle-right"></i></button>
+                            </div>
+                        </form>
+                    </div>
+                    <!-- ./card-body -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-7" id="displayCol">
+        <div class="row">
+            <div class="col" id="showAttachCard">
+                <div class="card">
+                    <div class="card-header bg-gradient-yellow" data-card-widget="collapse">
+                        <h5 class="card-title">Show Attachments</h5>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body bg-gradient-dark">
+                        @if (Model.Attachments.Any())
+                        {
+                            <div class="row clearfix">
+                                @foreach (TicketAttachment item in Model.Attachments)
+                                {
+                                    <div class="col-sm-3">
+                                        <div class="card">
+                                            <div class="file">
+                                                @if (await accessService.CanInteractAttachment(item))
+                                                {
+                                                    <div class="hover">
+                                                        <form asp-controller="Tickets" asp-action="DeleteAttachment" asp-route-attachmentId="@item.Id">
+                                                            <button type="submit" class="btn btn-icon btn-danger">
+                                                                <i class="fa fa-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                }
+                                                <a asp-controller="Tickets" asp-action="DownloadFile" asp-route-id="@item.Id" target="_blank">
+                                                    <div class="icon">
+                                                        <img src="@attachmentService.GetFileIcon(item.FileName)" style="height:60px;width:60px" />
+                                                    </div>
+                                                    <div class="file-name">
+                                                        <small class="m-b-5 text-muted">@System.IO.Path.GetFileNameWithoutExtension(item.FileName)</small>
+                                                        <p class="m-b-5 text-muted">@item.Description</p>
+                                                        <small>Size: @attachmentService.FormatFileSize(item.FileData.Length) <span class="date text-muted">@item.Created.ToString("HH:mm MM/dd/yy")</span></small>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <h3 class="text-center">No Attachments</h3>
+                        }
+                        <!-- /.row -->
+                    </div>
+                    <!-- ./card-body -->
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col" id="showCommentCard">
+                <div class="card">
+                    <div class="card-header bg-gradient-red" data-card-widget="collapse">
+                        <h5 class="card-title">Show Comments</h5>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body bg-gradient-dark">
+                        @if (Model.Comments.Any())
+                        {
+                            @foreach (var item in Model.Comments)
+                            {
+                                <div class="small-box bg-gradient-light" style="width:100%">
+                                    <div class="inner">
+                                        <!-- Post -->
+                                        <div class="post">
+                                            <div class="user-block">
+                                                @if (string.IsNullOrEmpty(item.User.ImagePath))
+                                                {
+                                                    <img class="img-circle img-bordered-sm" src="~/img/defaultuserimage.jpg" alt="User Image">
+                                                }
+                                                else
+                                                {
+                                                    <img class="img-circle img-bordered-sm" src="attachmentService.DecodeAttachment(item.User.ImageData, item.User.ImagePath)" alt="User Image">
+                                                }
+                                                <span class="username">
+                                                    <span>@item.User.FullName</span>
+                                                </span>
+                                                <span class="description">Made on @item.Created.ToString("HH:mm MM/dd/yy")</span>
+                                            </div>
+                                            <!-- /.user-block -->
+                                            <p>
+                                                @Html.Raw(item.Comment)
+                                            </p>
+                                        </div>
+                                        <!-- /.post -->
+                                        @if (await accessService.CanInteractComment(item))
+                                        {
+                                            <div class="row">
+                                                <form asp-controller="Tickets" asp-action="DeleteComment" asp-route-commentId="@item.Id">
+                                                    <div class="col">
+                                                        <button type="submit" class="btn btn-icon btn-danger">
+                                                            Delete <i class="fa fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                                <div class="col">
+                                                    <a href="javascript:void()" id="editComment" class="btn btn-warning">Edit <i class="fa fa-pen"></i></a>
+                                                </div>
+                                            </div>
+                                            <form asp-controller="Tickets" asp-action="EditComment" asp-route-commentId="@item.Id">
+                                                <div class="row topSpace">
+                                                    <div class="col">
+                                                        <textarea name="Comment" id="commentEdit" type="text" style="display:none" class="form-control">@item.Comment</textarea>
+                                                    </div>
+                                                </div>
+                                                <!-- /.row -->
+                                                <div class="row">
+                                                    <div class="col">
+                                                        <button type="submit" id="editSubmit" style="display:none" class="btn bg-success">Submit <i class="fa fa-chevron-right"></i></button>
+                                                    </div>
+                                                </div>
+                                            </form>
+
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                        }
+                        else
+                        {
+                            <h3 class="text-center">No Comments</h3>
+                        }
+
+                        <!-- /.row -->
+                    </div>
+                    <!-- ./card-body -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="card-header bg-gradient-olive">
+                <h5 class="card-title">Ticket History</h5>
+
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- /.card-header -->
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        Property Changed
+                                    </th>
+                                    <th>Old Value</th>
+                                    <th>New Value</th>
+                                    <th>Changed On</th>
+                                    <th>Changed By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var history in Model.Histories)
+                                {
+                                    <tr>
+                                        <td>
+                                            @history.Property
+                                        </td>
+                                        <td>
+                                            @history.OldValue
+                                        </td>
+                                        <td>
+                                            @history.NewValue
+                                        </td>
+                                        <td>
+                                            @history.Created.ToString("MM/dd/yy HH:mm")
+                                        </td>
+                                        <td>
+                                            @history.User.FullName
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- /.row -->
+            </div>
+            <!-- ./card-body -->
+        </div>
+    </div>
+</div>
+@section Scripts{
+    <script src="~/js/site.js"></script>
+} 

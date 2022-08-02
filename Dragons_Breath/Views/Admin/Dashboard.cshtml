@@ -1,0 +1,613 @@
+﻿@using Dragons_Breath.Services
+@inject IBTRolesService rolesService
+@model Dragons_Breath.Models.ViewModels.AdminDashboardViewModel
+
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    string errorMessage = (string)TempData["ErrorMessage"];
+}
+
+@if (User.IsInRole("Admin"))
+{
+    <div class="row">
+        <div class="col">
+            <div class="row">
+                <div class="col">
+                    <div class="card">
+                        <div class="card-header bg-gradient-danger">
+                            <h5 class="card-title">Ticket Types</h5>
+                            <div class="card-tools">
+                                <a class="dropdown-toggle text-light" data-toggle="dropdown" href="#">
+                                    Options
+                                </a>
+                                <div class="dropdown-menu">
+                                    <a class="dropdown-item" tabindex="-1" href="#editTab" data-toggle="tab">All</a>
+                                    <a class="dropdown-item" tabindex="-1" href="#addTab" data-toggle="tab">Add</a>
+                                    <a class="dropdown-item" tabindex="-1" href="#deleteTab" data-toggle="tab">Delete</a>
+                                </div>
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- /.card-header -->
+                        <div class="card-body">
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="editTab">
+                                    @foreach (var type in Model.Types)
+                                    {
+                                        <form asp-controller="Admin" asp-action="EditType" asp-route-id="@type.Id">
+                                            <span id="labelType-@type.Id" style="display:block">
+                                                <strong><i class="fas fa-book mr-1"></i> @type.Name</strong>
+                                                <a href="javascript:editTicketSettings('labelType-@type.Id', 'nameEditType-@type.Id', 'submit-@type.Id')" id="priorityEdit" class="btn btn-warning btn-sm">Edit <i class="fas fa-pen"></i></a>
+                                            </span>
+                                            <input type="text" id="nameEditType-@type.Id" name="Name" style="display:none" class="form-control" value="@type.Name" /><input type="submit" id="submit-@type.Id" style="display:none" value="Save Changes" class="btn btn-sm" />
+                                        </form>
+                                        <hr />
+                                    }
+                                </div>
+                                <!-- /.tab-pane -->
+                                <div class="tab-pane" id="addTab">
+                                    <form asp-controller="Admin" asp-action="AddType">
+                                        <label>Name</label>
+                                        <input type="text" name="Name" class="form-control" />
+                                        <br />
+                                        <input type="submit" value="Add New Type" class="btn btn-success" />
+                                    </form>
+                                </div>
+                                <!-- /.tab-pane -->
+                                <div class="tab-pane" id="deleteTab">
+                                    @foreach (var type in Model.Types)
+                                    {
+                                        <form asp-controller="Admin" asp-action="DeleteType" asp-route-id="@type.Id">
+                                            <strong><i class="fas fa-book mr-1"></i> @type.Name</strong>
+                                            <input type="submit" value="Delete" class="btn btn-sm btn-danger" />
+                                        </form>
+                                        <hr />
+                                    }
+                                </div>
+                                <!-- /.tab-pane -->
+                            </div>
+                            <!-- /.tab-content -->
+                            <div class="row">
+                            </div>
+                            <!-- /.row -->
+                        </div>
+                        <!-- ./card-body -->
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card">
+                        <div class="card-header bg-gradient-orange">
+                            <h5 class="card-title">Ticket Priorities</h5>
+                            <div class="card-tools">
+                                <a class="dropdown-toggle text-dark" data-toggle="dropdown" href="#">
+                                    Options
+                                </a>
+                                <div class="dropdown-menu">
+                                    <a class="dropdown-item" tabindex="-1" href="#editPriorityTab" data-toggle="tab">All</a>
+                                    <a class="dropdown-item" tabindex="-1" href="#addPriorityTab" data-toggle="tab">Add</a>
+                                    <a class="dropdown-item" tabindex="-1" href="#deletePriorityTab" data-toggle="tab">Delete</a>
+                                </div>
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- /.card-header -->
+                        <div class="card-body">
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="editPriorityTab">
+                                    @foreach (var priority in Model.Priorities)
+                                    {
+                                        <form asp-controller="Admin" asp-action="EditPriority" asp-route-id="@priority.Id">
+                                            <span id="labelType-@priority.Id" style="display:block">
+                                                <strong><i class="fas fa-book mr-1"></i> @priority.Name</strong>
+                                                <a href="javascript:editTicketSettings('labelType-@priority.Id', 'nameEditPriority-@priority.Id', 'submit-@priority.Id')" id="priorityEdit" class="btn btn-warning btn-sm">Edit <i class="fas fa-pen"></i></a>
+                                            </span>
+                                            <input type="text" id="nameEditPriority-@priority.Id" name="Name" style="display:none" class="form-control" value="@priority.Name" /><input type="submit" id="submit-@priority.Id" style="display:none" value="Save Changes" class="btn btn-sm" />
+                                        </form>
+                                        <hr />
+                                    }
+                                </div>
+                                <!-- /.tab-pane -->
+                                <div class="tab-pane" id="addPriorityTab">
+                                    <form asp-controller="Admin" asp-action="AddPriority">
+                                        <label>Name</label>
+                                        <input type="text" name="Name" class="form-control" />
+                                        <br />
+                                        <input type="submit" value="Add New Priority" class="btn btn-success" />
+                                    </form>
+                                </div>
+                                <!-- /.tab-pane -->
+                                <div class="tab-pane" id="deletePriorityTab">
+                                    @foreach (var priority in Model.Priorities)
+                                    {
+                                        <form asp-controller="Admin" asp-action="DeletePriority" asp-route-id="@priority.Id">
+                                            <strong><i class="fas fa-book mr-1"></i> @priority.Name</strong>
+                                            <input type="submit" value="Delete" class="btn btn-sm btn-danger" />
+                                        </form>
+                                        <hr />
+                                    }
+                                </div>
+                                <!-- /.tab-pane -->
+                            </div>
+                            <!-- /.tab-content -->
+                            <div class="row">
+                            </div>
+                            <!-- /.row -->
+                        </div>
+                        <!-- ./card-body -->
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card">
+                        <div class="card-header bg-gradient-yellow">
+                            <h5 class="card-title">Ticket Statuses</h5>
+                            <div class="card-tools">
+                                <a class="dropdown-toggle text-dark" data-toggle="dropdown" href="#">
+                                    Options
+                                </a>
+                                <div class="dropdown-menu">
+                                    <a class="dropdown-item" tabindex="-1" href="#editStatusTab" data-toggle="tab">All</a>
+                                    <a class="dropdown-item" tabindex="-1" href="#addStatusTab" data-toggle="tab">Add</a>
+                                    <a class="dropdown-item" tabindex="-1" href="#deleteStatusTab" data-toggle="tab">Delete</a>
+                                </div>
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- /.card-header -->
+                        <div class="card-body">
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="editStatusTab">
+                                    @foreach (var status in Model.Statuses)
+                                    {
+                                        <form asp-controller="Admin" asp-action="EditStatus" asp-route-id="@status.Id">
+                                            <span id="labelType-@status.Id" style="display:block">
+                                                <strong><i class="fas fa-book mr-1"></i> @status.Name</strong>
+                                                <a href="javascript:editTicketSettings('labelType-@status.Id', 'nameEditStatus-@status.Id', 'submit-@status.Id')" id="priorityEdit" class="btn btn-warning btn-sm">Edit <i class="fas fa-pen"></i></a>
+                                            </span>
+                                            <input type="text" id="nameEditStatus-@status.Id" name="Name" style="display:none" class="form-control" value="@status.Name" /><input type="submit" id="submit-@status.Id" style="display:none" value="Save Changes" class="btn btn-sm" />
+                                        </form>
+                                        <hr />
+                                    }
+                                </div>
+                                <!-- /.tab-pane -->
+                                <div class="tab-pane" id="addStatusTab">
+                                    <form asp-controller="Admin" asp-action="AddStatus">
+                                        <label>Name</label>
+                                        <input type="text" name="Name" class="form-control" />
+                                        <br />
+                                        <input type="submit" value="Add New Status" class="btn btn-success" />
+                                    </form>
+                                </div>
+                                <!-- /.tab-pane -->
+                                <div class="tab-pane" id="deleteStatusTab">
+                                    @foreach (var status in Model.Statuses)
+                                    {
+                                        <form asp-controller="Admin" asp-action="DeleteStatus" asp-route-id="@status.Id">
+                                            <strong><i class="fas fa-book mr-1"></i> @status.Name</strong>
+                                            <input type="submit" value="Delete" class="btn btn-sm btn-danger" />
+                                        </form>
+                                        <hr />
+                                    }
+                                </div>
+                                <!-- /.tab-pane -->
+                            </div>
+                            <!-- /.tab-content -->
+                            <div class="row">
+                            </div>
+                            <!-- /.row -->
+                        </div>
+                        <!-- ./card-body -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+<div class="row">
+    <div class="col-4">
+        <div class="card">
+            <div class="card-header bg-gradient-success">
+                <h5 class="card-title">Create Project</h5>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- /.card-header -->
+            <div class="card-body">
+                <form asp-controller="Projects" asp-action="Create" method="post" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="form-group col">
+                            <label class="control-label">Project Name</label>
+                            <input name="Name" type="text" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col">
+                            <label class="control-label">Project Image (optional)</label>
+                            <input name="FormFile" type="file">
+                        </div>
+                    </div>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <div class="row">
+                            <div class="form-group col">
+                                <label class="control-label">Choose one (1) Project Manager</label>
+                                <select name="ProjectManagerId" class="select2bs4 form-control">
+                                    @foreach (var user in Model.ProjectPM)
+                                    {
+                                        <option value="@user.Id">@user.FullName</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    }
+                    <div class="row">
+                        <div class="form-group col">
+                            <label class="control-label">Choose at least one (1) Developer</label>
+                            <select name="DeveloperIds" multiple="multiple" class="select2bs4 form-control">
+                                @foreach (var user in Model.DevUsers)
+                                {
+                                    <option value="@user.Id">@user.FullName</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col">
+                            <label class="control-label">Choose at least one (1) Submitter</label>
+                            <select name="SubmitterIds" multiple="multiple" class="select2bs4 form-control">
+                                @foreach (var user in Model.SubUsers)
+                                {
+                                    <option value="@user.Id">@user.FullName</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-3">
+                            <input type="submit" value="Create" class="btn btn-block btn-success" />
+                        </div>
+                    </div>
+
+                </form>
+                <!-- /.row -->
+            </div>
+            <!-- ./card-body -->
+        </div>
+    </div>
+    <div class="col-8">
+        <div class="card">
+            <div class="card-header bg-gradient-primary">
+                <h5 class="card-title">User Management</h5>
+                <div class="card-tools">
+                    <a class="dropdown-toggle text-light" data-toggle="dropdown" href="#">
+                        Filter By Role
+                    </a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" tabindex="-1" href="#allTab" data-toggle="tab">All</a>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a class="dropdown-item" tabindex="-1" href="#adminTab" data-toggle="tab">Admin</a>
+                            <a class="dropdown-item" tabindex="-1" href="#projectManagerTab" data-toggle="tab">Project Managers</a>
+                        }
+                        <a class="dropdown-item" tabindex="-1" href="#devTab" data-toggle="tab">Developers</a>
+                        <a class="dropdown-item" tabindex="-1" href="#subTab" data-toggle="tab">Submitters</a>
+                        <a class="dropdown-item" tabindex="-1" href="#newUserTab" data-toggle="tab">New Users</a>
+                    </div>
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- /.card-header -->
+            <div class="card-body">
+                <div class="tab-content">
+                    <div class="tab-pane active" id="allTab">
+                        <div class="row">
+                            <div class="col">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>First Name</th>
+                                            <th>Last Name</th>
+                                            <th>Email</th>
+                                            <th>Role</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{ int count = 0;}
+                                        @foreach (var user in Model.AllUsers)
+                                        {
+                                            <form asp-controller="Admin" asp-action="UpdateUser" asp-route-id="@user.Id" id="editUserForm-@user.Id">
+                                                <tr>
+                                                    <td>
+                                                        <span id="fN-@count" style="display:block">@user.FirstName</span>
+                                                        <input name="FirstName" id="editFN-@count" type="text" style="display:none" value="@user.FirstName" />
+                                                    </td>
+                                                    <td>
+                                                        <span id="lN-@count" style="display:block">@user.LastName</span>
+                                                        <input name="LastName" id="editLN-@count" type="text" style="display:none" value="@user.LastName" />
+                                                    </td>
+                                                    <td>
+                                                        <span id="email-@count" style="display:block">@user.Email</span>
+                                                        <input name="Email" id="editEmail-@count" type="text" style="display:none" value="@user.Email" />
+                                                    </td>
+                                                    <td>
+                                                        @foreach (var role in await rolesService.ListUserRoles(user))
+                                                        {
+                                                            if (role != "Demo")
+                                                            {
+                                                                <span id="role-@count" style="display:block">@role</span>
+                                                            }
+                                                            <select name="Role" id="editRole-@count" style="display:none" class="form-control">
+                                                                @foreach (var newRole in Model.Roles)
+                                                                {
+                                                                    <option value="@newRole">@newRole</option>
+                                                                }
+                                                            </select>
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        <a href="javascript:editUser(@count)" id="editBtn-@count" style="display:block" class="btn btn-sm btn-dark">Edit <i class="fa fa-pen"></i></a>
+                                                        <input type="submit" id="submitBtn-@count" value="Save" style="display:none" class="btn btn-sm btn-dark" />
+                                                    </td>
+                                                </tr>
+                                            </form>
+                                            count++;
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <div class="tab-pane" id="adminTab">
+                            <div class="row">
+                                <div class="col">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>First Name</th>
+                                                <th>Last Name</th>
+                                                <th>Email</th>
+                                                <th>Role</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var user in await rolesService.UsersInRole("Admin"))
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        @user.FirstName
+                                                    </td>
+                                                    <td>
+                                                        @user.LastName
+                                                    </td>
+                                                    <td>
+                                                        @user.Email
+                                                    </td>
+                                                    <td>
+                                                        @foreach (var role in await rolesService.ListUserRoles(user))
+                                                        {
+                                                            if (role != "Demo")
+                                                            {<span>@role</span>}
+                                                    }
+                                                    </td>
+                                                    <td>
+                                                        <a href="javascript:editFilterUser(@user.Id)" class="btn btn-sm btn-dark">Edit <i class="fa fa-pen"></i></a>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="projectManagerTab">
+                            <div class="row">
+                                <div class="col">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>First Name</th>
+                                                <th>Last Name</th>
+                                                <th>Email</th>
+                                                <th>Role</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var user in await rolesService.UsersInRole("ProjectManager"))
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        @user.FirstName
+                                                    </td>
+                                                    <td>
+                                                        @user.LastName
+                                                    </td>
+                                                    <td>
+                                                        @user.Email
+                                                    </td>
+                                                    <td>
+                                                        @foreach (var role in await rolesService.ListUserRoles(user))
+                                                        {
+                                                            if (role != "Demo")
+                                                            {<span>@role</span>}
+                                                    }
+                                                    </td>
+                                                    <td>
+                                                        <a href="javascript:editFilterUser(@user.Id)" class="btn btn-sm btn-dark">Edit <i class="fa fa-pen"></i></a>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    <div class="tab-pane" id="devTab">
+                        <div class="row">
+                            <div class="col">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>First Name</th>
+                                            <th>Last Name</th>
+                                            <th>Email</th>
+                                            <th>Role</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var user in await rolesService.UsersInRole("Developer"))
+                                        {
+                                            <tr>
+                                                <td>
+                                                    @user.FirstName
+                                                </td>
+                                                <td>
+                                                    @user.LastName
+                                                </td>
+                                                <td>
+                                                    @user.Email
+                                                </td>
+                                                <td>
+                                                    @foreach (var role in await rolesService.ListUserRoles(user))
+                                                    {
+                                                        if (role != "Demo")
+                                                        {<span>@role</span>}
+                                                }
+                                                </td>
+                                                <td>
+                                                    <a href="javascript:editFilterUser(@user.Id)" class="btn btn-sm btn-dark">Edit <i class="fa fa-pen"></i></a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane" id="subTab">
+                        <div class="row">
+                            <div class="col">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>First Name</th>
+                                            <th>Last Name</th>
+                                            <th>Email</th>
+                                            <th>Role</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var user in await rolesService.UsersInRole("Submitter"))
+                                        {
+                                            <tr>
+                                                <td>
+                                                    @user.FirstName
+                                                </td>
+                                                <td>
+                                                    @user.LastName
+                                                </td>
+                                                <td>
+                                                    @user.Email
+                                                </td>
+                                                <td>
+                                                    @foreach (var role in await rolesService.ListUserRoles(user))
+                                                    {
+                                                        if (role != "Demo")
+                                                        {<span>@role</span>}
+                                                }
+                                                </td>
+                                                <td>
+                                                    <a href="javascript:editFilterUser(@user.Id)" class="btn btn-sm btn-dark">Edit <i class="fa fa-pen"></i></a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane" id="newUserTab">
+                        <div class="row">
+                            <div class="col">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>First Name</th>
+                                            <th>Last Name</th>
+                                            <th>Email</th>
+                                            <th>Role</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var user in await rolesService.UsersInRole("NewUser"))
+                                        {
+                                            <tr>
+                                                <td>
+                                                    @user.FirstName
+                                                </td>
+                                                <td>
+                                                    @user.LastName
+                                                </td>
+                                                <td>
+                                                    @user.Email
+                                                </td>
+                                                <td>
+                                                    @foreach (var role in await rolesService.ListUserRoles(user))
+                                                    {
+                                                        if (role != "Demo")
+                                                        {<span>@role</span>}
+                                                }
+                                                </td>
+                                                <td>
+                                                    <a href="javascript:editFilterUser(@user.Id)" class="btn btn-sm btn-dark">Edit <i class="fa fa-pen"></i></a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <!-- ./card-body -->
+        </div>
+
+    </div>
+</div>
+
+
+
+@section Scripts {
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: '@errorMessage',
+                showConfirmButton: true,
+            })
+        </script>
+    }
+
+    <script src="~/js/adminDashboardScripts.js"></script>
+}

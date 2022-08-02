@@ -1,0 +1,86 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Dragon's Breath</title>
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Font Awesome -->
+    <link href="~/css/all.min.css" rel="stylesheet" />
+    <!-- Ionicons -->
+    <link rel="stylesheet" href="//code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <!-- iCheck -->
+    <link href="~/css/icheck-bootstrap.min.css" rel="stylesheet" />
+    <!-- Theme style -->
+    <link href="~/css/adminlte.min.css" rel="stylesheet" />
+    <!-- overlayScrollbars -->
+    <link href="~/css/OverlayScrollbars.min.css" rel="stylesheet" />
+    <!-- summernote -->
+    <link href="~/css/summernote-bs4.css" rel="stylesheet" />
+    <!-- Google Font: Source Sans Pro -->
+    <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+    <style>
+        body {
+            background-image: url("../../img/dragonsbreathlogo.jpg");
+            background-size: cover;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" style="margin-top: 5rem">
+        <div class="row">
+            <div class="col-8">
+                <div class="card bg-transparent">
+                    <div class="card-header bg-gradient-green">
+                        <h1 class="text-center">Welcome to Dragon's Breath Issue Tracker</h1>
+                    </div>
+                    <div class="card-body bg-gradient-olive">
+                        <div class="row">
+                            <div class="col">
+                                <h5>
+                                    Dragon's Breath is an online issue tracking software application that is functional and effective for both large and small businesses.
+                                </h5>
+                                <p>This application was built using C# ASP.NET Core 3.1 using both the MVC and MVVM design patterns. The front end is a Bootstrap 4 template</p>
+                                <p>Local development was built on MSSQL managed with Sql Server Management Studio. Production version uses a Docker container on Heroku with Postgres SQL managed with PGAdmin.</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <a class="btn btn-block btn-warning" asp-area="Identity" asp-page="/Account/Register">Register</a>
+                            </div>
+                            <div class="col">
+                                <a class="btn btn-block btn-danger" asp-area="Identity" asp-page="/Account/Login">Login</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- jQuery -->
+    <script src="~/js/jquery.min.js"></script>
+    <!-- jQuery UI 1.11.4 -->
+    <script src="~/js/jquery-ui.min.js"></script>
+    <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
+    <script>
+        $.widget.bridge('uibutton', $.ui.button)
+    </script>
+    <!-- Bootstrap 4 -->
+    <script src="~/js/bootstrap.bundle.min.js"></script>
+    <!-- ChartJS -->
+    <script src="~/js/Chart.min.js"></script>
+    <!-- Summernote -->
+    <script src="~/js/summernote-bs4.min.js"></script>
+    <!-- overlayScrollbars -->
+    <script src="~/js/jquery.overlayScrollbars.min.js"></script>
+    <!-- AdminLTE App -->
+    <script src="~/js/adminlte.min.js"></script>
+
+</body>
+</html>

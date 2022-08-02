@@ -1,0 +1,253 @@
+﻿@using Dragons_Breath.Services
+@using Dragons_Breath.Models.ViewModels
+@model ProjectDetailsViewModel
+@inject IBTAttachmentService attachmentService
+@inject IBTProjectService projectService
+
+
+<div class="row">
+    <div class="col">
+        <div class="row">
+            <div class="card">
+                <div class="card-header bg-gradient-olive">
+                    <h5 class="card-title">Project Details</h5>
+
+                </div>
+                <!-- /.card-header -->
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col">
+                            <div class="text-center">
+                                @if (string.IsNullOrEmpty(Model.Project.ImagePath))
+                                {
+                                    <img style="padding-top:.5rem" src="~/img/projectDefault.png" />
+                                }
+                                else
+                                {
+                                    <img src="@attachmentService.DecodeAttachment(Model.Project.ImageData, Model.Project.ImagePath)" style="padding-top:.5rem" />
+                                }
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h4 class="text-center">@Model.Project.Name</h4>
+                            <hr />
+                            <strong><p>@Model.Tickets.Count() tickets on this project</p></strong>
+                            <strong><p>@Model.Tickets.Where(t => t.TicketStatus.Name == "Unassigned").Count() unassigned tickets on this project</p></strong>
+                            <strong><p>@Model.Tickets.Where(t => t.TicketPriority.Name == "Critical").Count() critical tickets on this project</p></strong>
+                        </div>
+                    </div>
+                    <!-- /.row -->
+                </div>
+                <!-- ./card-body -->
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header bg-gradient-olive text-center">
+                        <h4 class="card-title">Create New Ticket</h4>
+                    </div>
+                    <!-- /.card-header -->
+                    <form asp-controller="Tickets" asp-action="Create" method="post">
+                        <input type="hidden" name="ProjectId" value="@Model.Project.Id" />
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="control-label">Title</label>
+                                <input name="Title" class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <label name="Description" class="control-label">Description</label>
+                                <textarea name="Description" class="form-control summernote"></textarea>
+                            </div>
+                            @if (Model == null)
+                            {
+                                <div class="form-group">
+                                    <label class="control-label">Project</label>
+                                    <select name="ProjectId" class="select2bs4 form-control" asp-items="ViewBag.ProjectId"></select>
+                                </div>
+                            }
+                            <div class="form-group">
+                                <label class="control-label">Type</label>
+                                <select name="TicketTypeId" class="select2bs4 form-control" asp-items="ViewBag.TicketTypeId"></select>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">Priority</label>
+                                <select name="TicketPriorityId" class="select2bs4 form-control" asp-items="ViewBag.TicketPriorityId"></select>
+                            </div>
+                            @if (User.IsInRole("Admin") || User.IsInRole("ProjectManager"))
+                            {
+                                <div class="form-group">
+                                    <label class="control-label">Status</label>
+                                    <select name="TicketStatusId" class="select2bs4 form-control" asp-items="ViewBag.TicketStatusId"></select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label">Developer</label>
+                                    <select name="DeveloperUserId" class="select2bs4 form-control" asp-items="ViewBag.DeveloperUserId"></select>
+                                </div>
+                            }
+                        </div>
+                        <div class="card-footer text-center">
+                            <div class="row">
+                                <div class="col">
+                                    <a asp-controller="Home" asp-action="Dashboard" class="btn btn-block btn-danger">Back to Dashboard</a>
+                                </div>
+                                <div class="col">
+                                    <input type="submit" value="Create" class="btn btn-block btn-success" />
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card">
+            <div class="card-header bg-gradient-green">
+                <h5 class="card-title">User Assignment</h5>
+
+            </div>
+            <!-- /.card-header -->
+            <form asp-controller="Projects" asp-action="AssignUsers" asp-route-id="@Model.Project.Id" method="post">
+                <div class="card-body">
+                    <div class="row">
+                        <label>Project Manager</label>
+                        <select name="ProjectManagerId" asp-items="@ViewBag.ProjectManagerId" class="form-control select2bs4"></select>
+                    </div>
+                    <div class="row">
+                        <label>Developers</label>
+                        <select name="DeveloperIds" multiple="multiple" asp-items="@ViewBag.DeveloperIds" class="form-control demo2"></select>
+                    </div>
+                    <div class="row">
+                        <label>Submitters</label>
+                        <select name="SubmitterIds" multiple="multiple" asp-items="@ViewBag.SubmitterIds" class="form-control demo2"></select>
+
+                    </div>
+                    <!-- /.row -->
+
+
+                </div>
+                <div class="card-footer text-center">
+                    <div class="row">
+                        <div class="col">
+                            <input type="submit" value="Save These Users" class="btn btn-block btn-success" />
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+            <!-- ./card-body -->
+        </div>
+    </div>
+</div>
+<div class="row" id="ticketRow">
+    <div class="col">
+        <div class="card">
+            <div class="card-header bg-gradient-danger">
+                <h5 class="card-title">Project Tickets</h5>
+            </div>
+            <!-- /.card-header -->
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        Created By
+                                    </th>
+                                    <th>
+                                        Developer
+                                    </th>
+                                    <th>
+                                        Title
+                                    </th>
+                                    <th>
+                                        Created
+                                    </th>
+                                    <th>
+                                        Updated
+                                    </th>
+                                    <th>
+                                        Project
+                                    </th>
+                                    <th>
+                                        Type
+                                    </th>
+                                    <th>
+                                        Priority
+                                    </th>
+                                    <th>
+                                        Status
+                                    </th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Tickets)
+                                {
+                                    <tr>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.OwnerUser.FullName)
+                                        </td>
+                                        <td>
+                                            @if (item.DeveloperUser != null)
+                                            {
+                                                @Html.DisplayFor(modelItem => item.DeveloperUser.FullName)
+                                            }
+                                            else
+                                            {
+                                                <span>No Developer Assigned</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.Title)
+                                        </td>
+                                        <td>
+                                            @item.Created.ToString("MM/dd/yy HH:mm:ss")
+                                        </td>
+                                        <td>
+                                            @if (item.Updated != null)
+                                            {
+                                                @item.Updated.Value.ToString("MMM/dd/yyyy HH:mm:ss")
+                                            }
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.Project.Name)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.TicketType.Name)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.TicketPriority.Name)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.TicketStatus.Name)
+                                        </td>
+                                        <td>
+                                            <a asp-controller="Tickets" asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-primary">Details <i class="fa fa-chevron-circle-right"></i></a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- /.row -->
+            </div>
+            <!-- ./card-body -->
+        </div>
+    </div>
+</div>
+
+
+@section Scripts{
+    <script src="~/js/projectDetailsScripts.js"></script>
+    <script>
+        var demo2 = $('.demo2').bootstrapDualListbox({
+            nonSelectedListLabel: 'Non-selected',
+            selectedListLabel: 'Selected',
+            preserveSelectionOnMove: 'moved',
+        });
+    </script>
+}
